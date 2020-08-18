@@ -25,15 +25,7 @@ func main() {
 
     flag.Parse()
 
-    fileServer := http.FileServer(http.Dir(cfg.StaticDir))
-
-    mux := http.NewServeMux()
-
-    mux.HandleFunc("/", app.home)
-    mux.HandleFunc("/snippet", app.showSnippet)
-    mux.HandleFunc("/snippet/create", app.createSnippet)
-    
-    mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+    mux := app.routes(cfg.StaticDir)
 
     pid := os.Getpid()
 
