@@ -1,18 +1,17 @@
 package main
 
 import (
-	"fmt"
-    "log"
-    "net/http"
-	"strconv"
+    "fmt"
     "html/template"
+    "net/http"
+    "strconv"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
-    log.Println("got to home!")
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
+    app.infoLog.Println("got to home!")
 
     if r.URL.Path != "/" {
-        http.NotFound(w, r)
+        app.notFound(w)
         return
     }
 
@@ -25,45 +24,44 @@ func home(w http.ResponseWriter, r *http.Request) {
     ts, err := template.ParseFiles(files...)
 
     if err != nil {
-        log.Println(err.Error())
-        http.Error(w, "Internal Server Error", 500)
+        app.serverError(w, err)
         return
     }
 
     err = ts.Execute(w, nil)
 
     if err != nil {
-        log.Println(err.Error())
-        http.Error(w, "Internal Server Error", 500)
+        app.serverError(w, err)
+        return
     }
 
     w.Write([]byte("Hello from Snippetbox"))
 }
 
-func showSnippet(w http.ResponseWriter, r *http.Request) {
-    log.Println("got to showSnippet!")
+func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
+    app.infoLog.Println("got to showSnippet!")
 
     id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
-    log.Printf("id = %v\n", id)
+    app.infoLog.Printf("id = %v\n", id)
 
     if err != nil || id < 1 {
-        http.NotFound(w, r)
+        app.notFound(w)
         return
     }
 
     fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
 }
 
-func createSnippet(w http.ResponseWriter, r *http.Request) {
-    log.Println("got to create snippet!")
+func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
+    app.infoLog.Println("got to create snippet!")
 
     if r.Method != "POST" {
         w.Header().Set("Allow", "POST")
-        http.Error(w, "Method not allowed", 405)
+
+        app.clientError(w, http.StatusMethodNotAllowed)
         return
     }
 
     w.Write([]byte("Create a snippet..."))
 }
-
