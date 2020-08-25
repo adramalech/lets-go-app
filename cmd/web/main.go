@@ -6,6 +6,8 @@ import (
     "log"
     "net/http"
     "os"
+    
+    "github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
 
     _ "github.com/go-sql-driver/mysql"
 )
@@ -19,21 +21,26 @@ func main() {
     cfg := new(Config)
     
     dsn := flag.String("dsn", "root:password12345@/snippetbox?parseTime=true", "MySQL data source name")
-
-    app := &application{
-        infoLog: log.New(os.Stdout, "INFO\t", log.Ldate|log.LUTC),
-        errorLog: log.New(os.Stderr, "ERROR\t", log.Ldate|log.LUTC|log.Llongfile),
-    }
-
     flag.StringVar(&cfg.Addr, "addr", ":4000", "Http network address")
     flag.StringVar(&cfg.StaticDir, "static-dir", "./ui-static", "Path to static assets")
 
     flag.Parse()
 
     db, err := openDB(*dsn)
-    
+
+    infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.LUTC)
+    errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.LUTC|log.Llongfile)
+
     if err != nil {
-        app.errorLog.Fatal(err)
+        errorLog.Fatal(err)
+    }
+    
+    defer db.Close()
+    
+    app := &application{
+        infoLog: infoLog,
+        errorLog: errorLog,
+        snippets: &mysql.SnippetModel{DB: db},
     }
 
     defer db.Close()
@@ -48,11 +55,11 @@ func main() {
         Handler: mux,
     }
 
-    app.infoLog.Printf("Starting server on %s with pid %d\n", cfg.Addr, pid)
+    infoLog.Printf("Starting server on %s with pid %d\n", cfg.Addr, pid)
 
     err = srv.ListenAndServe()
 
-    app.errorLog.Fatal(err)
+    errorLog.Fatal(err)
 }
 
 func openDB(dsn string) (*sql.DB, error) {
