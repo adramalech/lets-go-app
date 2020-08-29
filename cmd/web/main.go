@@ -27,7 +27,7 @@ func main() {
     flag.Parse()
 
     db, err := openDB(*dsn)
-
+    
     infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.LUTC)
     errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.LUTC|log.Llongfile)
 
@@ -42,8 +42,6 @@ func main() {
         errorLog: errorLog,
         snippets: &mysql.SnippetModel{DB: db},
     }
-
-    defer db.Close()
 
     mux := app.routes(cfg.StaticDir)
 
