@@ -1,15 +1,16 @@
 package main
 
 import (
-    "database/sql"
-    "flag"
-    "log"
-    "net/http"
-    "os"
-    
-    "github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
+	"context"
+	"flag"
+	"log"
+	"net/http"
+	"os"
 
-    _ "github.com/go-sql-driver/mysql"
+	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
+	"github.com/jmoiron/sqlx"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Config struct {
@@ -20,13 +21,15 @@ type Config struct {
 func main() {
     cfg := new(Config)
     
+    ctx := context.Background()
+
     dsn := flag.String("dsn", "root:password12345@/snippetbox?parseTime=true", "MySQL data source name")
     flag.StringVar(&cfg.Addr, "addr", ":4000", "Http network address")
     flag.StringVar(&cfg.StaticDir, "static-dir", "./ui-static", "Path to static assets")
 
     flag.Parse()
 
-    db, err := openDB(*dsn)
+    db, err := openDB(ctx, *dsn)
     
     infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.LUTC)
     errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.LUTC|log.Llongfile)
@@ -60,14 +63,10 @@ func main() {
     errorLog.Fatal(err)
 }
 
-func openDB(dsn string) (*sql.DB, error) {
-    db, err := sql.Open("mysql", dsn)
+func openDB(ctx context.Context, dsn string) (*sqlx.DB, error) {
+    db := sqlx.MustOpen("mysql", dsn)
     
-    if err != nil {
-        return nil, err
-    }
-    
-    err = db.Ping()
+    err := db.PingContext(ctx)
 
     if err != nil {
         return nil, err

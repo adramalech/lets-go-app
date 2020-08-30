@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	// "html/template"
 	"net/http"
 	"strconv"
+    "time"
 
-    "github.com/adramalech/lets-go-app/snippetbox/pkg/models"
+	"github.com/adramalech/lets-go-app/snippetbox/pkg/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
+    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
+    defer cancel()
+    r = r.WithContext(ctx)
+
     app.infoLog.Println("got to home!")
 
     if r.URL.Path != "/" {
@@ -25,7 +31,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
     // ts, err := template.ParseFiles(files...)
 
-    snippets, err := app.snippets.Latest()
+    snippets, err := app.snippets.Latest(ctx)
 
     if err != nil {
         app.serverError(w, err)
@@ -47,6 +53,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
+    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
+    defer cancel()
+    r = r.WithContext(ctx)
+    
     app.infoLog.Println("got to showSnippet!")
 
     id, err := strconv.Atoi(r.URL.Query().Get("id"))
@@ -58,7 +68,7 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    snippet, err := app.snippets.Get(id)
+    snippet, err := app.snippets.Get(ctx, id)
     
     if err == models.ErrNoRecord {
         app.notFound(w)
@@ -72,6 +82,10 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
+    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
+    defer cancel()
+    r = r.WithContext(ctx)
+
     app.infoLog.Println("got to create snippet!")
 
     if r.Method != "POST" {
@@ -81,11 +95,12 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    title := "O snail"
-    content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\nKobayashi Issa"
-    expires := "7"
+    snip := &models.Snip{}
+    snip.Content = "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\nKobayashi Issa"
+    snip.Expires = 7
+    snip.Title = "O snail"
 
-    id, err := app.snippets.Insert(title, content, expires)
+    id, err := app.snippets.Insert(ctx, snip)
 
     if err != nil {
         app.serverError(w, err)
