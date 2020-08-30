@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+    "time"
 
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
 	"github.com/jmoiron/sqlx"
@@ -21,8 +22,9 @@ type Config struct {
 func main() {
     cfg := new(Config)
     
-    ctx := context.Background()
-
+    ctx, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
+    defer cancel()
+    
     dsn := flag.String("dsn", "root:password12345@/snippetbox?parseTime=true", "MySQL data source name")
     flag.StringVar(&cfg.Addr, "addr", ":4000", "Http network address")
     flag.StringVar(&cfg.StaticDir, "static-dir", "./ui-static", "Path to static assets")
