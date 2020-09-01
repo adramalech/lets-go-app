@@ -16,8 +16,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
     defer cancel()
     r = r.WithContext(ctx)
 
-    app.infoLog.Println("got to home!")
-
     if r.URL.Path != "/" {
         app.notFound(w)
         return
@@ -57,8 +55,6 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
     defer cancel()
     r = r.WithContext(ctx)
     
-    app.infoLog.Println("got to showSnippet!")
-
     id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
     app.infoLog.Printf("id = %v\n", id)
@@ -85,8 +81,6 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
     ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
     defer cancel()
     r = r.WithContext(ctx)
-
-    app.infoLog.Println("got to create snippet!")
 
     if r.Method != "POST" {
         w.Header().Set("Allow", "POST")
