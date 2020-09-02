@@ -28,7 +28,7 @@ func logHandler(next http.Handler, log logger.Logger) http.Handler {
             "ipAddress": ipAddress,
         }
     
-        log.Info(fields)
+        log.Infof("%v\n", fields)
 
         next.ServeHTTP(w, r)
     })   
