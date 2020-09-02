@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
 	"net/http"
 	"os"
-    "time"
+	"time"
 
+	"github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
+
 	"github.com/jmoiron/sqlx"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -31,20 +32,25 @@ func main() {
 
     flag.Parse()
 
-    db, err := openDB(ctx, *dsn)
+    db, dbErr := openDB(ctx, *dsn)
     
-    infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.LUTC)
-    errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.LUTC|log.Llongfile)
-
+    zLog, err := logger.NewLogger(logger.Configuration{UseJSONFormat: false})
+    
     if err != nil {
-        errorLog.Fatal(err)
+        return
     }
-    
+
+    defer zLog.Close()
+
+    if dbErr != nil {
+        zLog.Fatal(err)
+        return
+    }
+
     defer db.Close()
-    
+
     app := &application{
-        infoLog: infoLog,
-        errorLog: errorLog,
+        log: zLog,
         snippets: &mysql.SnippetModel{DB: db},
     }
 
@@ -54,15 +60,15 @@ func main() {
 
     srv := &http.Server{
         Addr: cfg.Addr,
-        ErrorLog: app.errorLog,
+        ErrorLog: zLog.GetStdLogger(),
         Handler: mux,
     }
-
-    infoLog.Printf("Starting server on %s with pid %d\n", cfg.Addr, pid)
+    
+    zLog.Infof("Starting server on %s with pid %d\n", cfg.Addr, pid)
 
     err = srv.ListenAndServe()
 
-    errorLog.Fatal(err)
+    zLog.Fatal(err)
 }
 
 func openDB(ctx context.Context, dsn string) (*sqlx.DB, error) {
