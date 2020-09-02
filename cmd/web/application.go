@@ -1,13 +1,11 @@
 package main
 
 import (
-	"log"
-
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
+    "github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
 )
 
 type application struct {
-    errorLog *log.Logger
-    infoLog *log.Logger
-    snippets *mysql.SnippetModel
+    log logger.Logger
+    snippets mysql.Snippet
 }

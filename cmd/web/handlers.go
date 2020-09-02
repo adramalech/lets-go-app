@@ -1,18 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	// "html/template"
 	"net/http"
 	"strconv"
+    "time"
 
-    "github.com/adramalech/lets-go-app/snippetbox/pkg/models"
+	"github.com/adramalech/lets-go-app/snippetbox/pkg/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-    app.infoLog.Println("got to home!")
+    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
+    defer cancel()
+    r = r.WithContext(ctx)
 
     if r.URL.Path != "/" {
+        app.log.Errorf("Incorrect uri provided unable to find route that matches, %s\n", r.URL.String())
         app.notFound(w)
         return
     }
@@ -25,9 +30,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
     // ts, err := template.ParseFiles(files...)
 
-    snippets, err := app.snippets.Latest()
+    snippets, err := app.snippets.Latest(ctx)
 
     if err != nil {
+        app.log.Error("Unable to retrieve latest snippets from database.\n")
         app.serverError(w, err)
         return
     }
@@ -47,23 +53,26 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
-    app.infoLog.Println("got to showSnippet!")
-
+    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
+    defer cancel()
+    r = r.WithContext(ctx)
+    
     id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
-    app.infoLog.Printf("id = %v\n", id)
-
     if err != nil || id < 1 {
+        app.log.Errorf("Id is not a correct value %d\n", id)
         app.notFound(w)
         return
     }
     
-    snippet, err := app.snippets.Get(id)
+    snippet, err := app.snippets.Get(ctx, id)
     
     if err == models.ErrNoRecord {
+        app.log.Errorf("No records found from id %d\n", id)
         app.notFound(w)
         return
     } else if err != nil {
+        app.log.Errorf("An error occurred in getting the snippet id %d\n", id)
         app.serverError(w, err)
         return
     }
@@ -72,22 +81,25 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
-    app.infoLog.Println("got to create snippet!")
+    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
+    defer cancel()
+    r = r.WithContext(ctx)
 
     if r.Method != "POST" {
         w.Header().Set("Allow", "POST")
-
         app.clientError(w, http.StatusMethodNotAllowed)
         return
     }
     
-    title := "O snail"
-    content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\nKobayashi Issa"
-    expires := "7"
+    snip := &models.Snip{}
+    snip.Content = "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\nKobayashi Issa"
+    snip.Expires = 7
+    snip.Title = "O snail"
 
-    id, err := app.snippets.Insert(title, content, expires)
+    id, err := app.snippets.Insert(ctx, snip)
 
     if err != nil {
+        app.log.Error("An error occurred in inserting snippet into database.\n")
         app.serverError(w, err)
         return
     }

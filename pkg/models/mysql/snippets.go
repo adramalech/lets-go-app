@@ -1,22 +1,51 @@
 package mysql
 
 import (
+    "context"
     "database/sql"
+	
+    _ "github.com/go-sql-driver/mysql"
+
+    "github.com/jmoiron/sqlx"
 
     "github.com/adramalech/lets-go-app/snippetbox/pkg/models"
 )
 
-type SnippetModel struct {
-    DB *sql.DB
+type Snippet interface {
+    Insert(ctx context.Context, s *models.Snip) (int, error)
+    Get(ctx context.Context, id int) (*models.Snippet, error)
+    Latest(ctxt context.Context) ([]*models.Snippet, error)
+    Close() error
 }
 
-func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
+type SnippetModel struct {
+    DB *sqlx.DB
+}
+
+func NewSnippetModel(ctx context.Context, dsn string) (Snippet, error) {
+    db := sqlx.MustOpen("mysql", dsn)
+    
+    err := db.PingContext(ctx)
+
+    if err != nil {
+        return nil, err
+    }
+    
+    return &SnippetModel{DB: db}, nil
+}
+
+func (m *SnippetModel) Close() error {
+    err := m.Close()
+    return err
+}
+
+func (m *SnippetModel) Insert(ctx context.Context, s *models.Snip) (int, error) {
     stmt := `
         INSERT INTO snippets (title, content, created, expires)
-        VALUES (?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))
+        VALUES (:title, :content, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL :expires DAY))
     `
 
-    result, err := m.DB.Exec(stmt, title, content, expires)
+    result, err := m.DB.NamedExecContext(ctx, stmt, s)
 
     if err != nil {
         return 0, err
@@ -31,18 +60,18 @@ func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
     return int(id), nil
 }
 
-func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
+func (m *SnippetModel) Get(ctx context.Context, id int) (*models.Snippet, error) {
     stmt := `
         SELECT id, title, content, created, expires
         FROM snippets
         WHERE expires > UTC_TIMESTAMP() AND id = ?
     `
-    
-    row := m.DB.QueryRow(stmt, id)
+
+    row := m.DB.QueryRowxContext(ctx, stmt, id)
 
     snippet := &models.Snippet{}
-
-    err := row.Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.Created, &snippet.Expires)
+    
+    err := row.StructScan(snippet)
 
     if err == sql.ErrNoRows {
         return nil, models.ErrNoRecord
@@ -53,7 +82,7 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
     return snippet, nil
 }
 
-func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
+func (m *SnippetModel) Latest(ctx context.Context) ([]*models.Snippet, error) {
     stmt := `
         SELECT id, title, content, created, expires
         FROM snippets
@@ -62,7 +91,7 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
         LIMIT 10
     `
     
-    rows, err := m.DB.Query(stmt)
+    rows, err := m.DB.QueryxContext(ctx, stmt)
 
     if err == sql.ErrNoRows {
         return nil, models.ErrNoRecord
@@ -76,9 +105,9 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 
     for rows.Next() {
         snippet := &models.Snippet{}
-
-        err := rows.Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.Created, &snippet.Expires)
         
+        err := rows.StructScan(&snippet)
+
         if err != nil {
             return nil, err
         }

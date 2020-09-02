@@ -14,3 +14,9 @@ type Snippet struct {
     Created time.Time
     Expires time.Time
 }
+
+type Snip struct {
+    Title string
+    Content string
+    Expires int
+}
