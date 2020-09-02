@@ -12,7 +12,7 @@ import (
 //
 //   https://www.datadoghq.com/blog/go-logging/
 
-func (app *application) logHandler(next http.Handler) http.Handler {
+func logHandler(next http.Handler, log logger.Logger) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         uri := r.URL.String()
         method := r.Method
@@ -28,7 +28,7 @@ func (app *application) logHandler(next http.Handler) http.Handler {
             "ipAddress": ipAddress,
         }
     
-        app.log.Info(fields)
+        log.Info(fields)
 
         next.ServeHTTP(w, r)
     })   

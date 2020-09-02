@@ -56,7 +56,7 @@ func main() {
 
     mux := app.routes(cfg.StaticDir)
     
-    reqLoggerMux := app.logHandler(mux)
+    reqLoggerMux := logHandler(mux, zLog)
 
     pid := os.Getpid()
 
