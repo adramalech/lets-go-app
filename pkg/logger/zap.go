@@ -1,7 +1,6 @@
 package logger
 
 import (
-    "log"
     "os"
 
 	"go.uber.org/zap"
@@ -88,11 +87,6 @@ func (l *zapLogger) Panic(args ...interface{}) {
 
 func (l *zapLogger) Close() {
     l.sugaredLogger.Sync()
-}
-
-func (l *zapLogger) GetLogger() *log.Logger {
-    zLog := l.sugaredLogger.Desugar()
-    return zap.NewStdLog(zLog)
 }
 
 func (l *zapLogger) WithFields(fields Fields) Logger {

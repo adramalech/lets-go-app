@@ -55,15 +55,14 @@ func main() {
     }
 
     mux := app.routes(cfg.StaticDir)
+    
+    reqLoggerMux := app.logHandler(mux)
 
     pid := os.Getpid()
 
-    errorLogger := zLog.GetLogger()
-
     srv := &http.Server{
         Addr: cfg.Addr,
-        ErrorLog: errorLogger,
-        Handler: mux,
+        Handler: reqLoggerMux,
     }
     
     zLog.Infof("Starting server on %s with pid %d\n", cfg.Addr, pid)

@@ -1,7 +1,5 @@
 package logger
 
-import "log"
-
 // this is where my log: https://www.mountedthoughts.com/golang-logger-interface/
 
 type Configuration struct {
@@ -37,8 +35,6 @@ type Logger interface {
 
     WithFields(keyValues Fields) Logger
     
-    GetLogger() *log.Logger
-
     Close()
 }
 

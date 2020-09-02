@@ -57,8 +57,6 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
     
     id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
-    app.log.Infof("id = %v\n", id)
-
     if err != nil || id < 1 {
         app.notFound(w)
         return
