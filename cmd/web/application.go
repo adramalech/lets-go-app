@@ -7,5 +7,5 @@ import (
 
 type application struct {
     log logger.Logger
-    snippets *mysql.SnippetModel
+    snippets mysql.Snippet
 }

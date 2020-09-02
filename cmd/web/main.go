@@ -9,10 +9,6 @@ import (
 
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
-
-	"github.com/jmoiron/sqlx"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type Config struct {
@@ -32,7 +28,7 @@ func main() {
 
     flag.Parse()
 
-    db, dbErr := openDB(ctx, *dsn)
+    snippetModel, dbErr := mysql.NewSnippetModel(ctx, *dsn)
     
     zLog, err := logger.NewLogger(logger.Configuration{UseJSONFormat: false})
     
@@ -47,11 +43,11 @@ func main() {
         return
     }
 
-    defer db.Close()
+    defer snippetModel.Close()
 
     app := &application{
         log: zLog,
-        snippets: &mysql.SnippetModel{DB: db},
+        snippets: snippetModel,
     }
 
     mux := app.routes(cfg.StaticDir)
@@ -70,16 +66,4 @@ func main() {
     err = srv.ListenAndServe()
 
     zLog.Fatal(err)
-}
-
-func openDB(ctx context.Context, dsn string) (*sqlx.DB, error) {
-    db := sqlx.MustOpen("mysql", dsn)
-    
-    err := db.PingContext(ctx)
-
-    if err != nil {
-        return nil, err
-    }
-
-    return db, nil
 }

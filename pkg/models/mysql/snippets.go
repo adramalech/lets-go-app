@@ -3,14 +3,40 @@ package mysql
 import (
     "context"
     "database/sql"
-    
+	
+    _ "github.com/go-sql-driver/mysql"
+
     "github.com/jmoiron/sqlx"
 
     "github.com/adramalech/lets-go-app/snippetbox/pkg/models"
 )
 
+type Snippet interface {
+    Insert(ctx context.Context, s *models.Snip) (int, error)
+    Get(ctx context.Context, id int) (*models.Snippet, error)
+    Latest(ctxt context.Context) ([]*models.Snippet, error)
+    Close() error
+}
+
 type SnippetModel struct {
     DB *sqlx.DB
+}
+
+func NewSnippetModel(ctx context.Context, dsn string) (Snippet, error) {
+    db := sqlx.MustOpen("mysql", dsn)
+    
+    err := db.PingContext(ctx)
+
+    if err != nil {
+        return nil, err
+    }
+    
+    return &SnippetModel{DB: db}, nil
+}
+
+func (m *SnippetModel) Close() error {
+    err := m.Close()
+    return err
 }
 
 func (m *SnippetModel) Insert(ctx context.Context, s *models.Snip) (int, error) {
@@ -44,8 +70,8 @@ func (m *SnippetModel) Get(ctx context.Context, id int) (*models.Snippet, error)
     row := m.DB.QueryRowxContext(ctx, stmt, id)
 
     snippet := &models.Snippet{}
-
-    err := row.Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.Created, &snippet.Expires)
+    
+    err := row.StructScan(snippet)
 
     if err == sql.ErrNoRows {
         return nil, models.ErrNoRecord
