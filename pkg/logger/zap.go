@@ -90,8 +90,9 @@ func (l *zapLogger) Close() {
     l.sugaredLogger.Sync()
 }
 
-func (l *zapLogger) GetStdLogger() *log.Logger {
-    return zap.NewStdLog(l.sugaredLogger.Desugar())
+func (l *zapLogger) GetLogger() *log.Logger {
+    zLog := l.sugaredLogger.Desugar()
+    return zap.NewStdLog(zLog)
 }
 
 func (l *zapLogger) WithFields(fields Fields) Logger {

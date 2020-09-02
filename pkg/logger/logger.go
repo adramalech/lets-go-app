@@ -37,7 +37,7 @@ type Logger interface {
 
     WithFields(keyValues Fields) Logger
     
-    GetStdLogger() *log.Logger
+    GetLogger() *log.Logger
 
     Close()
 }

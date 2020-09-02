@@ -58,9 +58,11 @@ func main() {
 
     pid := os.Getpid()
 
+    errorLogger := zLog.GetLogger()
+
     srv := &http.Server{
         Addr: cfg.Addr,
-        ErrorLog: zLog.GetStdLogger(),
+        ErrorLog: errorLogger,
         Handler: mux,
     }
     
