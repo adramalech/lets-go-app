@@ -39,6 +39,7 @@ func main() {
     defer zLog.Close()
 
     if dbErr != nil {
+        zLog.Error("Error in connecting to DB make sure DB is online and able to accept connections!")
         zLog.Fatal(err)
         return
     }
