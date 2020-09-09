@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+    "html/template"
 	"net/http"
 	"os"
 	"time"
@@ -44,11 +45,18 @@ func main() {
         return
     }
 
+    templateCache, err := newTemplateCache("./ui/html/")
+
+    if err != nil {
+        zLog.Fatalf("error creating the template cache: %v", err)
+    }
+
     defer snippetModel.Close()
 
     app := &application{
         log: zLog,
         snippets: snippetModel,
+        templateCache: templateCache
     }
 
     mux := app.routes(cfg.StaticDir)

@@ -22,20 +22,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    files := []string{
-       "./ui/html/home.page.tmpl",
-       "./ui/html/base.layout.tmpl",
-       "./ui/html/footer.partial.tmpl",
-    }
-
-    ts, err := template.ParseFiles(files...)
-
-    if err != nil {
-        app.log.Error("Unable to parse html templates")
-        app.serverError(w, err)
-        return
-    }
-
     snippets, err := app.snippets.Latest(ctx)
 
     if err != nil {
@@ -43,16 +29,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
         app.serverError(w, err)
         return
     }
-
+    
     s := &templateData{Snippets: snippets}
-
-    err = ts.Execute(w, s)
-
-    if err != nil {
-        app.log.Error("Unable to render html templates")
-        app.serverError(w, err)
-        return
-    }
+    
+    app.render(w, r, "home.page.tmpl", s)
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -81,26 +61,8 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
     }
 
     s := &templateData{Snippet: snippet}
-
-    files := []string{
-        "./ui/html/show.page.tmpl",
-        "./ui/html/base.layout.tmpl",
-        "./ui/html/footer.partial.tmpl",
-    }
-
-    ts, err := template.ParseFiles(files...)
     
-    if err != nil {
-        app.log.Error("Unable to parse html template files.")
-        app.serverError(w, err)
-        return
-    }
-    
-    err = ts.Execute(w, s)
-
-    if err != nil {
-        app.serverError(w, err)
-    }
+    app.render(w, r, "show.page.tmpl", s)
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
