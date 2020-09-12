@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+    "html/template"
 	"net/http"
 	"os"
 	"time"
@@ -39,8 +40,15 @@ func main() {
     defer zLog.Close()
 
     if dbErr != nil {
+        zLog.Error("Error in connecting to DB make sure DB is online and able to accept connections!")
         zLog.Fatal(err)
         return
+    }
+
+    templateCache, err := newTemplateCache("./ui/html/")
+
+    if err != nil {
+        zLog.Fatalf("error creating the template cache: %v", err)
     }
 
     defer snippetModel.Close()
@@ -48,6 +56,7 @@ func main() {
     app := &application{
         log: zLog,
         snippets: snippetModel,
+        templateCache: templateCache
     }
 
     mux := app.routes(cfg.StaticDir)

@@ -23,9 +23,13 @@ type SnippetModel struct {
 }
 
 func NewSnippetModel(ctx context.Context, dsn string) (Snippet, error) {
-    db := sqlx.MustOpen("mysql", dsn)
+    db, err := sqlx.Open("mysql", dsn)
     
-    err := db.PingContext(ctx)
+    if err != nil {
+        return nil, err
+    }
+
+    err = db.PingContext(ctx)
 
     if err != nil {
         return nil, err
