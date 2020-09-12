@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-    "html/template"
 	"net/http"
 	"os"
 	"time"
@@ -56,7 +55,7 @@ func main() {
     app := &application{
         log: zLog,
         snippets: snippetModel,
-        templateCache: templateCache
+        templateCache: templateCache,
     }
 
     mux := app.routes(cfg.StaticDir)

@@ -75,10 +75,11 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    snip := &models.Snip{}
-    snip.Content = "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\nKobayashi Issa"
-    snip.Expires = 7
-    snip.Title = "O snail"
+    snip := &models.Snip{
+        Content: "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\nKobayashi Issa",
+        Expires: 7,
+        Title: "O snail",
+    }
 
     id, err := app.snippets.Insert(ctx, snip)
 
