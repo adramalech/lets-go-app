@@ -7,8 +7,8 @@
 #######################################################################################################################
 
 BUILD_PATH=./cmd/web/*
-DB_CONN_PROD="web:password12345@10.97.28.50:8080/snippetbox?parseTime=true"
-TAG_VERSION=0.0.1
+DB_CONN="web:password12345@127.0.0.1:8080/snippetbox?parseTime=true"
+TAG_VERSION=0.0.2
 
 build:
 	go build -o ./bin/snippetbox $(BUILD_PATH)
@@ -25,7 +25,7 @@ docker: docker-build docker-publish
 
 run:
 	@echo "Run locally..."
-	go run ./cmd/web/* -addr=":10000" --static-dir="./ui/static"
+	go run ./cmd/web/* -addr=":10000" -dsn=$(DB_CONN) --static-dir="./ui/static"
 
 deploy:
 	@echo "Setup kubernetes cluster locally for minikube..."
@@ -43,14 +43,7 @@ deploy:
 	kubectl apply -f ./snippetbox.yaml
 
 prod:
-	go run ./bin/snippetbox --addr=":$(APP_PORT)" --dsn="$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@$(MYSQL_DATABASE_HOST):$(MYSQL_DATABASE_PORT)/$(MYSQL_DATABASE_NAME)?parseTime=true" --static-dir="./ui/static"
-
-#ENV MYSQL_DATABASE_NAME="snippetbox" \
-#    MYSQL_DATABASE_HOST="127.0.0.1" \
-#    MYSQL_DATABASE_PORT="8080" \
-#    MYSQL_USERNAME="root" \
-#    MYSQL_PASSWORD="Password12345!" 
-
+	go run ./bin/snippetbox -addr=":$(APP_PORT)" -dsn="$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@$(MYSQL_DATABASE_HOST):$(MYSQL_DATABASE_PORT)/$(MYSQL_DATABASE_NAME)?parseTime=true" --static-dir="./ui/static"
 
 compile:
 	@echo "Cross compile..."
