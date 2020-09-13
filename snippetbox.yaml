@@ -20,3 +20,19 @@ spec:
               imagePullPolicy: IfNotPresent
             ports:
             - containerPort: 80
+            env:
+            - name: MYSQL_DATABASE_HOST
+              value: 10.97.28.50
+            - name: MYSQL_DATABASE_NAME
+              value: snippetbox
+            - name: MYSQL_USERNAME
+              valueFrom:
+                  secretKeyRef:
+                      name: mysql-secret
+                      key: mysql-username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                      name: mysql-secret
+                      key: mysql-password
+

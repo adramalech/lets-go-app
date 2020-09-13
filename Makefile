@@ -43,7 +43,14 @@ deploy:
 	kubectl apply -f ./snippetbox.yaml
 
 prod:
-	go run ./bin/snippetbox --addr=":80" --dsn=$(DB_CONN_PROD) --static-dir="./ui/static"
+	go run ./bin/snippetbox --addr=":$(APP_PORT)" --dsn="$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@$(MYSQL_DATABASE_HOST):$(MYSQL_DATABASE_PORT)/$(MYSQL_DATABASE_NAME)?parseTime=true" --static-dir="./ui/static"
+
+#ENV MYSQL_DATABASE_NAME="snippetbox" \
+#    MYSQL_DATABASE_HOST="127.0.0.1" \
+#    MYSQL_DATABASE_PORT="8080" \
+#    MYSQL_USERNAME="root" \
+#    MYSQL_PASSWORD="Password12345!" 
+
 
 compile:
 	@echo "Cross compile..."
