@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: go-snippetbox
+    labels:
+        app: go-snippetbox
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: go-snippetbox
+    template:
+        metadata:
+            labels:
+                app: go-snippetbox
+        spec:
+            containers:
+            - name: go-snippetbox
+              image: jthrone/go-snippetbox
+              imagePullPolicy: IfNotPresent
+            ports:
+            - containerPort: 80

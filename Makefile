@@ -7,18 +7,43 @@
 #######################################################################################################################
 
 BUILD_PATH=./cmd/web/*
+DB_CONN_PROD="web:password12345@10.97.28.50:8080/snippetbox?parseTime=true"
+TAG_VERSION=0.0.1
 
 build:
-	@echo "Building app..."
-	go build -o bin/snippetbox $(BUILD_PATH)
+	go build -o ./bin/snippetbox $(BUILD_PATH)
+
+docker-build:
+	docker build -t snippetbox-go .
+
+docker-publish:
+	docker tag snippetbox-go jthrone/snippetbox-go:$(TAG_VERSION)
+	docker login
+	docker push jthrone/snippetbox-go:$(TAG_VERSION)
+
+docker: docker-build docker-publish
 
 run:
 	@echo "Run locally..."
 	go run ./cmd/web/* -addr=":10000" --static-dir="./ui/static"
 
+deploy:
+	@echo "Setup kubernetes cluster locally for minikube..."
+	@echo ""
+	@echo "Apply secrets..."
+	kubectl apply -f ./mysql-secret.yaml
+	@echo ""
+	@echo "Apply mysql database pod..."
+	kubectl apply -f ./mysql.yaml
+	@echo ""
+	@echo "Build app docker container..."
+	docker build -t snippetbox-go
+	@echo ""
+	@echo "Apply app pod..."
+	kubectl apply -f ./snippetbox.yaml
+
 prod:
-	@echo "Run production release..."
-	go run ./bin/snippetbox --addr=":10000" --static-dir="./ui/static" >> ./tmp/info.log 2 >> ./tmp/error.log
+	go run ./bin/snippetbox --addr=":80" --dsn=$(DB_CONN_PROD) --static-dir="./ui/static"
 
 compile:
 	@echo "Cross compile..."
