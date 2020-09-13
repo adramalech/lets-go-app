@@ -36,6 +36,9 @@ deploy:
 	@echo "Apply mysql database pod..."
 	kubectl apply -f ./mysql.yaml
 	@echo ""
+	@echo "Apply mysql configmap..."
+	kubectl apply -f ./mysql-configmap.yaml
+	@echo ""
 	@echo "Build app docker container..."
 	docker build -t snippetbox-go
 	@echo ""
