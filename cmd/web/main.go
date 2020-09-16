@@ -60,7 +60,7 @@ func main() {
         templateCache: templateCache,
     }
 
-    standardMiddleware := alice.New(app.recoverPanic, app.logHandler, app.secureHeaders)
+    standardMiddleware := alice.New(app.recoverPanic, secureHeaders, app.logHandler, cancelHandler)
 
     mux := app.routes(cfg.StaticDir)
     

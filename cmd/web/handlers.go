@@ -1,20 +1,16 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strconv"
-    "time"
 
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
-    defer cancel()
-    r = r.WithContext(ctx)
-
+    ctx := r.Context()
+    
     if r.URL.Path != "/" {
         app.log.Errorf("Incorrect uri provided unable to find route that matches, %s\n", r.URL.String())
         app.notFound(w)
@@ -35,9 +31,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
-    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
-    defer cancel()
-    r = r.WithContext(ctx)
+    ctx := r.Context()
     
     id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
@@ -65,9 +59,7 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
-    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(60 * time.Second))
-    defer cancel()
-    r = r.WithContext(ctx)
+    ctx := r.Context()
 
     if r.Method != "POST" {
         w.Header().Set("Allow", "POST")

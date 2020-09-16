@@ -1,12 +1,24 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
 )
+
+func cancelHandler(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        ctx, cancel := context.WithTimeout(r.Context(), 20 * time.Second)
+        defer cancel()
+        
+        r = r.WithContext(ctx)
+
+        next.ServeHTTP(w, r)
+    })
+}
 
 // got some ideas from here:
 //   https://presstige.io/p/Logging-HTTP-requests-in-Go-233de7fe59a747078b35b82a1b035d36
@@ -67,11 +79,11 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
     lrw.ResponseWriter.WriteHeader(code)
 }
  
-func (app *application) secureHeaders(next http.Handler) http.Handler {
+func secureHeaders(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("X-XSS-Protection", "1;mode=block")
         w.Header().Set("X-Frame-Options", "deny")
-
+        
         next.ServeHTTP(w, r)
     })
 }
