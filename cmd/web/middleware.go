@@ -52,6 +52,7 @@ func (app *application) logHandler(next http.Handler) http.Handler {
     })   
 }
 
+// where i got this idea from: https://gist.github.com/Boerworz/b683e46ae0761056a636
 type loggingResponseWriter struct {
     http.ResponseWriter
     statusCode int
