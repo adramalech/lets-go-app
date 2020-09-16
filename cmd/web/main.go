@@ -10,7 +10,7 @@ import (
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
 
-    // "github.com/justinas/alice"
+    "github.com/justinas/alice"
 )
 
 type Config struct {
@@ -60,11 +60,11 @@ func main() {
         templateCache: templateCache,
     }
 
-    // standardMiddleware := alice.New(recoverPanic, logHandler, secureHeaders)
+    standardMiddleware := alice.New(app.recoverPanic, app.logHandler, app.secureHeaders)
 
     mux := app.routes(cfg.StaticDir)
     
-    reqLoggerMux := app.recoverPanic(logHandler(secureHeaders(mux), zLog))
+    reqLoggerMux := standardMiddleware.Then(mux)
 
     pid := os.Getpid()
 

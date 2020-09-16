@@ -1,10 +1,11 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
+	"fmt"
+	"net/http"
+	"time"
 
-    "github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
+	"github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
 )
 
 // got some ideas from here:
@@ -12,7 +13,7 @@ import (
 //
 //   https://www.datadoghq.com/blog/go-logging/
 
-func logHandler(next http.Handler, log logger.Logger) http.Handler {
+func (app *application) logHandler(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         uri := r.URL.String()
         method := r.Method
@@ -31,13 +32,41 @@ func logHandler(next http.Handler, log logger.Logger) http.Handler {
             "ipAddress": ipAddress,
         }
     
-        log.Infof("%v\n", fields)
+        start := time.Now()
 
-        next.ServeHTTP(w, r)
+        lrw := NewLoggingResponseWriter(w)
+
+        next.ServeHTTP(lrw, r)
+        
+        end := time.Now()
+
+        duration := end.Sub(start)
+
+        fields["duration"] = duration
+        
+        fields["statusCode"] = lrw.statusCode
+        statusCodeText := http.StatusText(lrw.statusCode)
+        fields["statusCodeText"] = statusCodeText
+
+        app.log.Infof("%v\n", fields)
     })   
 }
 
-func secureHeaders(next http.Handler) http.Handler {
+type loggingResponseWriter struct {
+    http.ResponseWriter
+    statusCode int
+}
+
+func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
+    return &loggingResponseWriter{w, http.StatusOK}
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+    lrw.statusCode = code
+    lrw.ResponseWriter.WriteHeader(code)
+}
+ 
+func (app *application) secureHeaders(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("X-XSS-Protection", "1;mode=block")
         w.Header().Set("X-Frame-Options", "deny")
