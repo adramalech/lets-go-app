@@ -64,7 +64,7 @@ func main() {
 
     mux := app.routes(cfg.StaticDir)
     
-    reqLoggerMux := recoverPanic(logHandler(secureHeaders(mux), zLog))
+    reqLoggerMux := app.recoverPanic(logHandler(secureHeaders(mux), zLog))
 
     pid := os.Getpid()
 
