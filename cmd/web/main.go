@@ -9,6 +9,8 @@ import (
 
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/logger"
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
+
+    "github.com/justinas/alice"
 )
 
 type Config struct {
@@ -58,9 +60,11 @@ func main() {
         templateCache: templateCache,
     }
 
+    standardMiddleware := alice.New(app.recoverPanic, secureHeaders, app.logHandler, cancelHandler)
+
     mux := app.routes(cfg.StaticDir)
     
-    reqLoggerMux := logHandler(mux, zLog)
+    reqLoggerMux := standardMiddleware.Then(mux)
 
     pid := os.Getpid()
 
