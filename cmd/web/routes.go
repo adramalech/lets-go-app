@@ -13,5 +13,5 @@ func (app *application) routes(staticDir string) *http.ServeMux {
     
     mux.Handle("/static/", http.StripPrefix("/static", fileServer))
     
-    return mux
+    return  mux
 }
