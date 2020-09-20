@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: go-snippetbox
+    name: snippetbox-go
     labels:
-        app: go-snippetbox
+        app: snippetbox-go
 spec:
     replicas: 1
     selector:
         matchLabels:
-            app: go-snippetbox
+            app: snippetbox-go
     template:
         metadata:
             labels:
-                app: go-snippetbox
+                app: snippetbox-go
         spec:
             containers:
-            - name: go-snippetbox
-              image: jthrone/go-snippetbox
+            - name: snippetbox-go
+              image: jthrone/snippetbox-go:0.0.2
               imagePullPolicy: Always
               ports:
               - containerPort: 80
@@ -38,14 +38,16 @@ spec:
                     secretKeyRef:
                         name: mysql-secret
                         key: mysql-password
+            imagePullSecrets:
+                - name: regcred                
 ---
 apiVersion: v1
 kind: Service
 metadata:
-    name: go-snippetbox-service
+    name: snippetbox-go-service
 spec:
     selector:
-        app: go-snippetbox
+        app: snippetbox-go
     type: LoadBalancer
     ports:
         - protocol: TCP

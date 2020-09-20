@@ -23,6 +23,11 @@ docker-publish:
 
 docker: docker-build docker-publish
 
+docker-secret:
+	docker login
+	kubectl create secret generic regcred --from-file=.dockerconfigjson=/Users/jonathanthrone/.docker/config.json --type=kubernetes.io/dockerconfigjson
+	kubectl get secret regcred --output=yaml
+
 run:
 	@echo "Run locally..."
 	go run ./cmd/web/* -addr=":10000" -dsn=$(DB_CONN) --static-dir="./ui/static"
