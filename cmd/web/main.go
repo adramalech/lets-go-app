@@ -24,8 +24,8 @@ func main() {
     ctx, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
     defer cancel()
     
-    dsn := flag.String("dsn", "root:password12345@/snippetbox?parseTime=true", "MySQL data source name")
-    flag.StringVar(&cfg.Addr, "addr", ":4000", "Http network address")
+    dsn := flag.String("dsn", "web:password12345!@/snippetbox?parseTime=true", "MySQL data source name")
+    flag.StringVar(&cfg.Addr, "addr", ":8081", "Http network address")
     flag.StringVar(&cfg.StaticDir, "static-dir", "./ui-static", "Path to static assets")
 
     flag.Parse()

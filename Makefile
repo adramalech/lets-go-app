@@ -23,7 +23,7 @@ docker-publish:
 
 docker: docker-build docker-publish
 
-docker-secret:
+docker-private-repo-secret:
 	docker login
 	kubectl create secret generic regcred --from-file=.dockerconfigjson=/Users/jonathanthrone/.docker/config.json --type=kubernetes.io/dockerconfigjson
 	kubectl get secret regcred --output=yaml
@@ -52,10 +52,3 @@ deploy:
 
 prod:
 	go run ./bin/snippetbox -addr=":$(APP_PORT)" -dsn="$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@$(MYSQL_DATABASE_HOST):$(MYSQL_DATABASE_PORT)/$(MYSQL_DATABASE_NAME)?parseTime=true" --static-dir="./ui/static"
-
-compile:
-	@echo "Cross compile..."
-	GOOS=linux GOARCH=amd64 go build -o bin/snippetbox-linux-amd64 $(BUILD_PATH)
-	GOOS=windows GOARCH=amd64 go build -o bin/snippetbox-windows-amd64.exe $(BUILD_PATH)
-	GOOS=darwin GOARCH=amd64 go build -o bin/snippetbox-darwin-amd64 $(BUILD_PATH)
-	GOOS=linux GOARCH=arm64 go build -o bin/snippetbox-linux-arm64 $(BUILD_PATH)

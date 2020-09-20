@@ -12,13 +12,13 @@ RUN go mod download
 
 RUN make build
 
-EXPOSE 80
+EXPOSE 8081
 
 ENV MYSQL_DATABASE_NAME="snippetbox" \
     MYSQL_DATABASE_HOST="127.0.0.1" \
     MYSQL_DATABASE_PORT="8080" \
-    MYSQL_USERNAME="root" \
-    MYSQL_PASSWORD="Password12345!" \
-    APP_PORT="80"
+    MYSQL_USERNAME="web" \
+    MYSQL_PASSWORD="password12345!" \
+    APP_PORT="8081"
 
 CMD ["make prod"]
