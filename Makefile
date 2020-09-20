@@ -8,7 +8,7 @@
 
 BUILD_PATH=./cmd/web/*
 DB_CONN="web:password12345@127.0.0.1:8080/snippetbox?parseTime=true"
-TAG_VERSION=0.0.2
+TAG_VERSION=0.0.6
 
 build:
 	go build -o ./bin/snippetbox $(BUILD_PATH)
@@ -23,10 +23,10 @@ docker-publish:
 
 docker: docker-build docker-publish
 
-docker-private-repo-secret:
-	docker login
-	kubectl create secret generic regcred --from-file=.dockerconfigjson=/Users/jonathanthrone/.docker/config.json --type=kubernetes.io/dockerconfigjson
-	kubectl get secret regcred --output=yaml
+# docker-private-repo-secret:
+#	docker login
+#	kubectl create secret generic regcred --from-file=.dockerconfigjson=/Users/jonathanthrone/.docker/config.json --type=kubernetes.io/dockerconfigjson
+#	kubectl get secret regcred --output=yaml
 
 run:
 	@echo "Run locally..."
@@ -44,11 +44,11 @@ deploy:
 	@echo "Apply mysql configmap..."
 	kubectl apply -f ./mysql-configmap.yaml
 	@echo ""
-	@echo "Build app docker container..."
-	docker build -t snippetbox-go
-	@echo ""
 	@echo "Apply app pod..."
 	kubectl apply -f ./snippetbox.yaml
 
 prod:
-	go run ./bin/snippetbox -addr=":$(APP_PORT)" -dsn="$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@$(MYSQL_DATABASE_HOST):$(MYSQL_DATABASE_PORT)/$(MYSQL_DATABASE_NAME)?parseTime=true" --static-dir="./ui/static"
+	./bin/snippetbox -addr=":$(APP_PORT)" -dsn="$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@$(MYSQL_DATABASE_HOST):$(MYSQL_DATABASE_PORT)/$(MYSQL_DATABASE_NAME)?parseTime=true" --static-dir="./ui/static"
+
+destroy-everything:
+	kubectl delete all --all --all-namespaces

@@ -41,6 +41,13 @@ spec:
                     secretKeyRef:
                         name: mysql-secret
                         key: mysql-password
+              volumeMounts:
+                - name: mysql-initdb
+                  mountPath: /docker-entrypoint-initdb.d
+            volumes:
+                - name: mysql-initdb
+                  configMap:
+                    name: mysql-configmap
 ---
 apiVersion: v1
 kind: Service

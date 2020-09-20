@@ -16,7 +16,7 @@ spec:
         spec:
             containers:
             - name: snippetbox-go
-              image: jthrone/snippetbox-go:0.0.2
+              image: jthrone/snippetbox-go:0.0.6
               imagePullPolicy: Always
               ports:
               - containerPort: 8081
