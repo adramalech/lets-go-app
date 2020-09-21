@@ -30,8 +30,6 @@ func main() {
 
     flag.Parse()
 
-    snippetModel, dbErr := mysql.NewSnippetModel(ctx, *dsn)
-    
     zLog, err := logger.NewLogger(logger.Configuration{UseJSONFormat: false})
     
     if err != nil {
@@ -40,12 +38,14 @@ func main() {
 
     defer zLog.Close()
 
-    if dbErr != nil {
+    snippetModel, err := mysql.NewSnippetModel(ctx, *dsn)
+
+    if err != nil {
         zLog.Error("Error in connecting to DB make sure DB is online and able to accept connections!")
         zLog.Fatal(err)
         return
     }
-
+    
     templateCache, err := newTemplateCache("./ui/html/")
 
     if err != nil {
