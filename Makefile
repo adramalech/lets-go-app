@@ -7,8 +7,8 @@
 #######################################################################################################################
 
 BUILD_PATH=./cmd/web/*
-DB_CONN="web:password12345@127.0.0.1:8080/snippetbox?parseTime=true"
-TAG_VERSION=0.0.6
+DB_CONN="web:password12345!@127.0.0.1:3306/snippetbox?parseTime=true"
+TAG_VERSION=0.0.7
 
 build:
 	go build -o ./bin/snippetbox $(BUILD_PATH)

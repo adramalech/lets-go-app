@@ -12,10 +12,10 @@ RUN go mod download
 
 ENV MYSQL_DATABASE_NAME="snippetbox" \
     MYSQL_DATABASE_HOST="127.0.0.1" \
-    MYSQL_DATABASE_PORT="8080" \
+    MYSQL_DATABASE_PORT="3306" \
     MYSQL_USERNAME="web" \
     MYSQL_PASSWORD="password12345!" \
-    APP_PORT="8081"
+    APP_PORT="80"
 
 RUN apk update && apk add curl \
                           git \
@@ -26,6 +26,6 @@ RUN apk update && apk add curl \
 
 RUN make build
 
-EXPOSE 8081
+EXPOSE 80
 
 CMD [ "make", "prod" ]
