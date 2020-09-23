@@ -62,15 +62,15 @@ func main() {
 
     standardMiddleware := alice.New(app.recoverPanic, secureHeaders, app.logHandler, cancelHandler)
 
-    mux := app.routes(cfg.StaticDir)
+    router := app.addRoutes(cfg.StaticDir)
     
-    reqLoggerMux := standardMiddleware.Then(mux)
+    server := standardMiddleware.Then(router)
 
     pid := os.Getpid()
 
     srv := &http.Server{
         Addr: cfg.Addr,
-        Handler: reqLoggerMux,
+        Handler: server,
     }
     
     zLog.Infof("Starting server on %s with pid %d\n", cfg.Addr, pid)

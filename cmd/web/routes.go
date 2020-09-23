@@ -1,17 +1,22 @@
 package main
 
-import "net/http"
+import (
+    "net/http"
 
-func (app *application) routes(staticDir string) *http.ServeMux {
+    "github.com/gorilla/mux"
+)
+
+func (app *application) addRoutes(staticDir string) *mux.Router {
     fileServer := http.FileServer(http.Dir(staticDir))
 
-    mux := http.NewServeMux()
-
-    mux.HandleFunc("/", app.home)
-    mux.HandleFunc("/snippet", app.showSnippet)
-    mux.HandleFunc("/snippet/create", app.createSnippet)
+    router := mux.NewRouter()
     
-    mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+    router.HandleFunc("/", app.home)
+    router.HandleFunc("/snippet/{id:[0-9]+}", app.showSnippet)
+    router.HandleFunc("/snippet/create", app.createSnippet).Methods("POST")
+    router.HandleFunc("/snippet/create", app.createSnippetForm).Methods("GET")
     
-    return  mux
+    router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fileServer))
+    
+    return router
 }
