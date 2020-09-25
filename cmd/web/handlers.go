@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+    "strings"
+    "unicode/utf8"
 
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models"
 )
@@ -61,20 +63,34 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
     ctx := r.Context()
 
-    if r.Method != "POST" {
-        w.Header().Set("Allow", "POST")
-        app.clientError(w, http.StatusMethodNotAllowed)
+    err := r.ParseForm()
+
+    if err != nil {
+        app.clientError(w, http.StatusBadRequest)
+    }
+
+    form := forms.New(r.PostForm)
+
+    form.Required("title", "content", "expires")
+    form.MaxLength("title", 100)
+    form.PermittedValues("expires", "365", "7", "1")
+
+    if !form.Valid() {
+        app.render(w, r, "create.page.tmpl", &templateData{
+            Form: form,
+        })
+
         return
     }
     
     snip := &models.Snip{
-        Content: "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\nKobayashi Issa",
-        Expires: 7,
-        Title: "O snail",
+        Title: form.Get("title"), 
+        Content: form.Get("content"), 
+        Expires: form.Get("expires"),
     }
 
     id, err := app.snippets.Insert(ctx, snip)
-
+    
     if err != nil {
         app.log.Error("An error occurred in inserting snippet into database.\n")
         app.serverError(w, err)
@@ -85,5 +101,7 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("Create a new snippet..."))
+    app.render(w, r, "create.page.tmpl", &templateData{
+        Form: forms.New(nil),
+    })
 }
