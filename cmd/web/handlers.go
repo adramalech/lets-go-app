@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-    "strings"
-    "unicode/utf8"
 
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models"
+    "github.com/adramalech/lets-go-app/snippetbox/pkg/forms"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -83,10 +82,20 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
     
+    expiresStr := form.Get("expires")
+    
+    expires, err := strconv.Atoi(expiresStr)
+
+    if err != nil {
+        app.log.Error("Unable to parse expires field, %s", expiresStr)
+        app.serverError(w, err)
+        return
+    }
+
     snip := &models.Snip{
         Title: form.Get("title"), 
         Content: form.Get("content"), 
-        Expires: form.Get("expires"),
+        Expires: expires,
     }
 
     id, err := app.snippets.Insert(ctx, snip)
