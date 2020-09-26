@@ -6,12 +6,15 @@ import (
     "time"
 
     "github.com/adramalech/lets-go-app/snippetbox/pkg/models"
+    "github.com/adramalech/lets-go-app/snippetbox/pkg/forms"
+
 )
 
 type templateData struct {
     CurrentYear int
     Snippet *models.Snippet
     Snippets []*models.Snippet
+    Form *forms.Form
 }
 
 func humanDate(t time.Time) string {
