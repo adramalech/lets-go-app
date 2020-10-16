@@ -1,6 +1,7 @@
 package main
 
 import (
+    "errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -36,9 +37,10 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
     
     id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 
-    if err != nil || id < 1 {
-        app.log.Errorf("Id is not a correct value %d\n", id)
-        app.notFound(w)
+    if err != nil && id < 1 {
+        app.log.Errorf("Id needs to exist and be a correct number, id=%d", id)
+        app.log.Errorf("Error: %v", err)
+        app.clientError(w, http.StatusBadRequest)
         return
     }
     
@@ -82,6 +84,24 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
     
+    session, err := app.session.Get(r, "session-id")
+
+    if err != nil {
+        err = errors.New("type assertion to string failed")
+
+        app.log.Errorf("An error occurred in getting the session-id %v", err)
+        app.serverError(w, err)
+        return
+    }
+
+    flashes := session.Flashes()
+
+    if len(flashes) > 0 {
+        // find flash here.
+    } else {
+        session.AddFlash("Hello, flash messages world!")
+    }
+
     expiresStr := form.Get("expires")
     
     expires, err := strconv.Atoi(expiresStr)
