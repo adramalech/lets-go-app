@@ -36,9 +36,10 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
     
     id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 
-    if err != nil || id < 1 {
-        app.log.Errorf("Id is not a correct value %d\n", id)
-        app.notFound(w)
+    if err != nil && id < 1 {
+        app.log.Errorf("Id needs to exist and be a correct number, id=%d", id)
+        app.log.Errorf("Error: %v", err)
+        app.clientError(w, http.StatusBadRequest)
         return
     }
     
@@ -54,7 +55,9 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    s := &templateData{Snippet: snippet}
+    s := &templateData{
+        Snippet: snippet,
+    }
     
     app.render(w, r, "show.page.tmpl", s)
 }
@@ -82,12 +85,20 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
     
+    session, err := app.session.Get(r, "session")
+
+    if err != nil {
+        app.log.Errorf("An error occurred in getting the session %v", err)
+        app.serverError(w, err)
+        return
+    }
+
     expiresStr := form.Get("expires")
     
     expires, err := strconv.Atoi(expiresStr)
 
     if err != nil {
-        app.log.Error("Unable to parse expires field, %s", expiresStr)
+        app.log.Errorf("Unable to parse expires field, %s", expiresStr)
         app.serverError(w, err)
         return
     }
@@ -105,7 +116,14 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         app.serverError(w, err)
         return
     }
- 
+
+    session.AddFlash("Snippet successfully created!", "flash")
+    err = session.Save(r, w)
+    
+    if err != nil {
+        app.log.Errorf("Unable to save session flash message %v", err)
+    }
+
     http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
 

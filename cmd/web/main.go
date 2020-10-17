@@ -11,11 +11,13 @@ import (
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
 
     "github.com/justinas/alice"
+    "github.com/gorilla/sessions"
 )
 
 type Config struct {
     Addr string
     StaticDir string
+    SessionSecretKey string
 }
 
 func main() {
@@ -27,8 +29,14 @@ func main() {
     dsn := flag.String("dsn", "root:password12345@/snippetbox?parseTime=true", "MySQL data source name")
     flag.StringVar(&cfg.Addr, "addr", ":4000", "Http network address")
     flag.StringVar(&cfg.StaticDir, "static-dir", "./ui-static", "Path to static assets")
+    flag.StringVar(&cfg.SessionSecretKey, "session-secret-key", "super-secret-key", "Secret AES-256 key")
 
-    flag.Parse()
+    store := sessions.NewCookieStore([]byte(cfg.SessionSecretKey))
+    
+    store.Options = &sessions.Options{
+		MaxAge: 43200, // 12 hours cookie expiration
+		HttpOnly: true,
+	}
 
     snippetModel, dbErr := mysql.NewSnippetModel(ctx, *dsn)
     
@@ -58,6 +66,7 @@ func main() {
         log: zLog,
         snippets: snippetModel,
         templateCache: templateCache,
+        session: store,
     }
 
     standardMiddleware := alice.New(app.recoverPanic, secureHeaders, app.logHandler, cancelHandler)
