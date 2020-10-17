@@ -56,7 +56,9 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    s := &templateData{Snippet: snippet}
+    s := &templateData{
+        Snippet: snippet,
+    }
     
     app.render(w, r, "show.page.tmpl", s)
 }
@@ -84,22 +86,12 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    session, err := app.session.Get(r, "session-id")
+    session, err := app.session.Get(r, "session")
 
     if err != nil {
-        err = errors.New("type assertion to string failed")
-
-        app.log.Errorf("An error occurred in getting the session-id %v", err)
+        app.log.Errorf("An error occurred in getting the session %v", err)
         app.serverError(w, err)
         return
-    }
-
-    flashes := session.Flashes()
-
-    if len(flashes) > 0 {
-        // find flash here.
-    } else {
-        session.AddFlash("Hello, flash messages world!")
     }
 
     expiresStr := form.Get("expires")
@@ -107,7 +99,7 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
     expires, err := strconv.Atoi(expiresStr)
 
     if err != nil {
-        app.log.Error("Unable to parse expires field, %s", expiresStr)
+        app.log.Errorf("Unable to parse expires field, %s", expiresStr)
         app.serverError(w, err)
         return
     }
@@ -125,7 +117,14 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
         app.serverError(w, err)
         return
     }
- 
+
+    session.AddFlash("Snippet successfully created!", "flash")
+    err = session.Save(r, w)
+    
+    if err != nil {
+        app.log.Errorf("Unable to save session flash message %v", err)
+    }
+
     http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
 

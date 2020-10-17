@@ -34,6 +34,29 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 
     td.CurrentYear = time.Now().Year()
 
+    session, err := app.session.Get(r, "session")
+
+    if err != nil {
+        td.Flash = ""
+        return td
+    }
+
+    flashes := session.Flashes("flash")
+
+    if flashes == nil || len(flashes) < 1 {
+        td.Flash = ""
+        return td
+    }
+
+    flash, ok := flashes[0].(string)
+
+    if !ok {
+        td.Flash = ""
+        return td
+    }
+
+    td.Flash = flash
+
     return td
 }
 
