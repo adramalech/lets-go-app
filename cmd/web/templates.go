@@ -6,10 +6,14 @@ import (
     "time"
 
     "github.com/adramalech/lets-go-app/snippetbox/pkg/models"
+    "github.com/adramalech/lets-go-app/snippetbox/pkg/forms"
+
 )
 
 type templateData struct {
     CurrentYear int
+    Flash string
+    Form *forms.Form
     Snippet *models.Snippet
     Snippets []*models.Snippet
 }

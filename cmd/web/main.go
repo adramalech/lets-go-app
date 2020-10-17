@@ -11,11 +11,13 @@ import (
 	"github.com/adramalech/lets-go-app/snippetbox/pkg/models/mysql"
 
     "github.com/justinas/alice"
+    "github.com/gorilla/sessions"
 )
 
 type Config struct {
     Addr string
     StaticDir string
+    SessionSecretKey string
 }
 
 func main() {
@@ -27,8 +29,14 @@ func main() {
     dsn := flag.String("dsn", "web:password12345!@127.0.0.1:3306/snippetbox?parseTime=true", "MySQL data source name")
     flag.StringVar(&cfg.Addr, "addr", ":80", "Http network address")
     flag.StringVar(&cfg.StaticDir, "static-dir", "./ui-static", "Path to static assets")
+    flag.StringVar(&cfg.SessionSecretKey, "session-secret-key", "super-secret-key", "Secret AES-256 key")
 
-    flag.Parse()
+    store := sessions.NewCookieStore([]byte(cfg.SessionSecretKey))
+    
+    store.Options = &sessions.Options{
+		MaxAge: 43200, // 12 hours cookie expiration
+		HttpOnly: true,
+	}
 
     zLog, err := logger.NewLogger(logger.Configuration{UseJSONFormat: false})
     
@@ -58,19 +66,20 @@ func main() {
         log: zLog,
         snippets: snippetModel,
         templateCache: templateCache,
+        session: store,
     }
 
     standardMiddleware := alice.New(app.recoverPanic, secureHeaders, app.logHandler, cancelHandler)
 
-    mux := app.routes(cfg.StaticDir)
+    router := app.addRoutes(cfg.StaticDir)
     
-    reqLoggerMux := standardMiddleware.Then(mux)
+    server := standardMiddleware.Then(router)
 
     pid := os.Getpid()
 
     srv := &http.Server{
         Addr: cfg.Addr,
-        Handler: reqLoggerMux,
+        Handler: server,
     }
     
     zLog.Infof("Starting server on %s with pid %d\n", cfg.Addr, pid)
